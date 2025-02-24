@@ -1,93 +1,55 @@
-require('dotenv').config();
-const { execSync } = require('child_process');
-const url = require('url');
+import pg from 'pg';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// Get the connection URL from env
-const connectionUrl = process.env.POSTGRES_URL;
+const { Client } = pg;
+dotenv.config();
 
-if (!connectionUrl) {
-  console.error('Error: POSTGRES_URL not found in environment variables');
-  process.exit(1);
-}
-
-// Parse the connection URL
-const parsedUrl = new url.URL(connectionUrl);
-const dbName = parsedUrl.pathname.split('/').pop();
-const host = parsedUrl.hostname;
-const port = parsedUrl.port;
-const username = parsedUrl.username;
-const password = parsedUrl.password;
-
-// Create environment with PGPASSWORD
-const env = {
-  ...process.env,
-  PGPASSWORD: password
-};
-
-// Test connection first
-try {
-  console.log('Testing database connection...');
-  execSync(`pg_isready -h ${host} -p ${port} -U ${username}`, { stdio: 'inherit', env });
-} catch (error) {
-  console.error('Failed to connect to database server:', error.message);
-  process.exit(1);
-}
-
-// Function to check if database exists
-function checkDatabaseExists() {
-  try {
-    const result = execSync(
-      `psql -h ${host} -p ${port} -U ${username} -d postgres -t -A -c "SELECT 1 FROM pg_database WHERE datname='${dbName}'"`,
-      { encoding: 'utf-8', env }
-    ).trim();
-    return result === '1';
-  } catch (error) {
-    console.error('Error checking database:', error.message);
-    return false;
-  }
-}
-
-// First check if database already exists
-if (checkDatabaseExists()) {
-  console.log(`Database ${dbName} already exists.`);
-  
-  // List databases
-  console.log('\nCurrent databases:');
-  try {
-    execSync(
-      `psql -h ${host} -p ${port} -U ${username} -d postgres -c "\\l"`,
-      { stdio: 'inherit', env }
-    );
-  } catch (error) {
-    console.error('Error listing databases:', error.message);
-  }
-  
-  process.exit(0);
-}
-
-try {
-  // Try to create the database
-  console.log(`Creating database ${dbName}...`);
-  execSync(
-    `psql -h ${host} -p ${port} -U ${username} -d postgres -c "CREATE DATABASE ${dbName}"`,
-    { stdio: 'inherit', env }
+async function checkDatabaseExists(client, dbName) {
+  const result = await client.query(
+    "SELECT 1 FROM pg_database WHERE datname = $1",
+    [dbName]
   );
-  
-  // Verify the database was created
-  if (checkDatabaseExists()) {
-    console.log(`Database ${dbName} created and verified successfully!`);
-    
-    // Show the database in the list
-    console.log('\nCurrent databases:');
-    execSync(
-      `psql -h ${host} -p ${port} -U ${username} -d postgres -c "\\l"`,
-      { stdio: 'inherit', env }
-    );
-  } else {
-    console.error('Database creation failed: Database not found after creation attempt');
-    process.exit(1);
-  }
-} catch (error) {
-  console.error('Error creating database:', error.message);
-  process.exit(1);
+  return result.rows.length > 0;
 }
+
+async function createDatabase() {
+  // Extract database name from connection string
+  const url = new URL(process.env.POSTGRES_URL);
+  const dbName = url.pathname.slice(1); // Remove leading slash
+
+  // Create a connection to postgres to create the database
+  const client = new Client({
+    host: url.hostname,
+    port: url.port,
+    user: url.username,
+    password: url.password,
+    database: 'postgres', // Connect to default postgres database
+    ssl: { rejectUnauthorized: false }
+  });
+
+  try {
+    await client.connect();
+
+    // Check if database already exists
+    const exists = await checkDatabaseExists(client, dbName);
+    
+    if (exists) {
+      console.log(`Database '${dbName}' already exists.`);
+      return;
+    }
+
+    // Create the database
+    await client.query(`CREATE DATABASE ${dbName};`);
+    console.log(`Successfully created database: ${dbName}`);
+
+  } catch (err) {
+    console.error('Error creating database:', err);
+    process.exit(1);
+  } finally {
+    await client.end();
+  }
+}
+
+createDatabase();

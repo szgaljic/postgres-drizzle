@@ -5,8 +5,9 @@ import {
   timestamp,
   decimal,
   integer,
+  serial,
+  varchar,
 } from 'drizzle-orm/pg-core';
-import { UsersTable } from '../drizzle';
 
 // Define explicit enums for type safety
 export enum AssetType {
@@ -25,6 +26,16 @@ export enum TransactionType {
   Trade = 'trade',
   Reset = 'reset',
 }
+
+export const UsersTable = pgTable('users', {
+  id: serial('id').primaryKey(),
+  googleId: varchar('google_id', { length: 255 }).notNull().unique(),
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  image: text('image'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
 
 export const PortfolioAccountsTable = pgTable('portfolio_accounts', {
   id: uuid('id').primaryKey().defaultRandom(),

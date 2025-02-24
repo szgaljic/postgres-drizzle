@@ -37,8 +37,20 @@ CREATE TABLE "trades" (
 	"trade_type" text NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "users" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"google_id" varchar(255) NOT NULL,
+	"name" varchar(255) NOT NULL,
+	"email" varchar(255) NOT NULL,
+	"image" text,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "users_google_id_unique" UNIQUE("google_id"),
+	CONSTRAINT "users_email_unique" UNIQUE("email")
+);
+--> statement-breakpoint
 ALTER TABLE "account_transactions" ADD CONSTRAINT "account_transactions_portfolio_account_id_portfolio_accounts_id_fk" FOREIGN KEY ("portfolio_account_id") REFERENCES "public"."portfolio_accounts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "account_transactions" ADD CONSTRAINT "account_transactions_trade_id_trades_id_fk" FOREIGN KEY ("trade_id") REFERENCES "public"."trades"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "portfolio_accounts" ADD CONSTRAINT "portfolio_accounts_user_id_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "portfolio_accounts" ADD CONSTRAINT "portfolio_accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "trades" ADD CONSTRAINT "trades_portfolio_account_id_portfolio_accounts_id_fk" FOREIGN KEY ("portfolio_account_id") REFERENCES "public"."portfolio_accounts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "trades" ADD CONSTRAINT "trades_asset_id_assets_id_fk" FOREIGN KEY ("asset_id") REFERENCES "public"."assets"("id") ON DELETE no action ON UPDATE no action;

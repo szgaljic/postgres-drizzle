@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers'
+import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 
 export type SessionUser = {
@@ -8,17 +8,9 @@ export type SessionUser = {
   image: string
 }
 
-export async function getSession(): Promise<SessionUser | null> {
-  const cookieStore = cookies()
-  const sessionToken = cookieStore.get('session_token')
-  
-  if (!sessionToken) {
-    return null
-  }
-
-  // TODO: Validate session token and return user data
-  // This will be implemented when we add Google SSO
-  return null
+export async function getSession() {
+  const session = await auth()
+  return session?.user || null
 }
 
 export async function requireAuth() {

@@ -15,28 +15,14 @@ import {
   AssetsTable,
   TradesTable,
   AccountTransactionsTable,
+  UsersTable,
 } from './schema/paper-trader'
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' })
 
-export const UsersTable = pgTable(
-  'profiles',
-  {
-    id: serial('id').primaryKey(),
-    name: text('name').notNull(),
-    email: text('email').notNull(),
-    image: text('image').notNull(),
-    createdAt: timestamp('createdAt').defaultNow().notNull(),
-  },
-  (table) => ({
-    uniqueIdx: uniqueIndex('unique_idx').on(table.email),
-  })
-)
-
+// Export our paper trader types
 export type User = InferSelectModel<typeof UsersTable>
 export type NewUser = InferInsertModel<typeof UsersTable>
-
-// Export our paper trader types
 export type PortfolioAccount = InferSelectModel<typeof PortfolioAccountsTable>
 export type NewPortfolioAccount = InferInsertModel<typeof PortfolioAccountsTable>
 export type Asset = InferSelectModel<typeof AssetsTable>
@@ -51,6 +37,7 @@ export const db = drizzle(sql)
 
 // Export our paper trader tables
 export {
+  UsersTable,
   PortfolioAccountsTable,
   AssetsTable,
   TradesTable,

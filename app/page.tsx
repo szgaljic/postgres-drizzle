@@ -1,9 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { signIn } from 'next-auth/react'
 
 const facts = [
   {
@@ -68,7 +68,11 @@ export default function Home() {
           <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-2xl mx-auto">
             Master the markets with paper trading. Practice real trading strategies without risking real money.
           </p>
-          <Button size="lg" className="gap-2">
+          <Button 
+            size="lg" 
+            className="gap-2"
+            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+          >
             <svg viewBox="0 0 48 48" className="w-5 h-5">
               <path
                 fill="#FFC107"

@@ -1,0 +1,2 @@
+1. Make sure to avoid TypeScript any
+2. Use zod
