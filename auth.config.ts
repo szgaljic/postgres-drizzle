@@ -32,7 +32,12 @@ export const authConfig: NextAuthConfig = {
 
       try {
         // Validate profile data
-        const validatedProfile = googleProfileSchema.parse(profile);
+        const validatedProfile = googleProfileSchema.parse({
+          sub: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          picture: profile.picture,
+        });
 
         // Check if user exists
         const existingUser = await db
@@ -47,14 +52,13 @@ export const authConfig: NextAuthConfig = {
             googleId: validatedProfile.sub,
             name: validatedProfile.name,
             email: validatedProfile.email,
-            image: validatedProfile.picture ?? '',
+            image: validatedProfile.picture,
           });
-          console.log('Created new user:', validatedProfile.email);
         }
 
         return true;
       } catch (error) {
-        console.error('Error in signIn callback:', error);
+        console.error('Error in Google sign in:', error);
         return false;
       }
     },
