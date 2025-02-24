@@ -1,6 +1,16 @@
 import type { NextAuthConfig } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import { z } from "zod"
+import { db, UsersTable } from '@/lib/drizzle'
+import { eq } from 'drizzle-orm'
+
+// Validation schema for Google profile
+const googleProfileSchema = z.object({
+  sub: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  picture: z.string().url(),
+})
 
 export const authConfig: NextAuthConfig = {
   providers: [
@@ -14,6 +24,40 @@ export const authConfig: NextAuthConfig = {
     error: "/",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider !== 'google' || !profile) {
+        console.error('Only Google authentication is supported');
+        return false;
+      }
+
+      try {
+        // Validate profile data
+        const validatedProfile = googleProfileSchema.parse(profile);
+
+        // Check if user exists
+        const existingUser = await db
+          .select()
+          .from(UsersTable)
+          .where(eq(UsersTable.googleId, validatedProfile.sub))
+          .then((res) => res[0]);
+
+        if (!existingUser) {
+          // Create new user
+          await db.insert(UsersTable).values({
+            googleId: validatedProfile.sub,
+            name: validatedProfile.name,
+            email: validatedProfile.email,
+            image: validatedProfile.picture ?? '',
+          });
+          console.log('Created new user:', validatedProfile.email);
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error in signIn callback:', error);
+        return false;
+      }
+    },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isOnDashboard = nextUrl.pathname.startsWith("/dashboard")

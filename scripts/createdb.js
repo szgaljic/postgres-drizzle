@@ -1,9 +1,6 @@
-import pg from 'pg';
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+const { Client } = require('pg');
+const dotenv = require('dotenv');
 
-const { Client } = pg;
 dotenv.config();
 
 async function checkDatabaseExists(client, dbName) {
@@ -14,22 +11,37 @@ async function checkDatabaseExists(client, dbName) {
   return result.rows.length > 0;
 }
 
+function parsePostgresUrl(url) {
+  // postgresql://user:password@host:port/dbname
+  const match = url.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+  if (!match) {
+    throw new Error('Invalid PostgreSQL URL format');
+  }
+  return {
+    user: match[1],
+    password: match[2],
+    host: match[3],
+    port: parseInt(match[4]),
+    database: match[5]
+  };
+}
+
 async function createDatabase() {
-  // Extract database name from connection string
-  const url = new URL(process.env.POSTGRES_URL);
-  const dbName = url.pathname.slice(1); // Remove leading slash
-
-  // Create a connection to postgres to create the database
-  const client = new Client({
-    host: url.hostname,
-    port: url.port,
-    user: url.username,
-    password: url.password,
-    database: 'postgres', // Connect to default postgres database
-    ssl: { rejectUnauthorized: false }
-  });
-
+  let client;
   try {
+    const connectionInfo = parsePostgresUrl(process.env.POSTGRES_URL);
+    const dbName = connectionInfo.database;
+
+    // Create a connection to postgres to create the database
+    client = new Client({
+      host: connectionInfo.host,
+      port: connectionInfo.port,
+      user: connectionInfo.user,
+      password: connectionInfo.password,
+      database: 'postgres', // Connect to default postgres database
+      ssl: { rejectUnauthorized: false }
+    });
+
     await client.connect();
 
     // Check if database already exists
@@ -48,7 +60,9 @@ async function createDatabase() {
     console.error('Error creating database:', err);
     process.exit(1);
   } finally {
-    await client.end();
+    if (client) {
+      await client.end();
+    }
   }
 }
 
