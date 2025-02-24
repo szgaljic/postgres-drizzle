@@ -1,13 +1,27 @@
+'use client';
+
+import { useState } from 'react';
+import { SearchBar } from './components/SearchBar';
+import { ResearchOverview } from './components/ResearchOverview';
+import { StockDetail } from './components/StockDetail';
+
 export default function ResearchPage() {
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+
   return (
     <div className="py-6">
       <h1 className="text-2xl font-semibold text-gray-900">Research</h1>
       <div className="mt-6">
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow">
-          <h2 className="text-lg font-medium text-gray-900">Market Research</h2>
-          <p className="mt-2 text-sm text-gray-500">Coming soon...</p>
+        <SearchBar onSymbolSelect={setSelectedSymbol} />
+        
+        <div className="mt-6">
+          {selectedSymbol ? (
+            <StockDetail symbol={selectedSymbol} />
+          ) : (
+            <ResearchOverview />
+          )}
         </div>
       </div>
     </div>
-  )
+  );
 }
