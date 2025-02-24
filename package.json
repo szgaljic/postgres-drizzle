@@ -9,15 +9,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "createdb": "node scripts/createdb.js"
+    "createdb": "node scripts/createdb.js",
+    "generate": "drizzle-kit generate",
+    "migrate": "tsx lib/migrate.ts",
+    "studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@types/ms": "^0.7.32",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "10.4.16",
-    "drizzle-kit": "^0.19.13",
-    "drizzle-orm": "^0.28.6",
+    "drizzle-orm": "^0.39.3",
     "eslint": "8.51.0",
     "eslint-config-next": "^15.1.6",
     "ms": "^2.1.3",
@@ -30,8 +33,11 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
+    "drizzle-kit": "^0.30.4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.7.3"
   }
 }

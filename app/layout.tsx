@@ -1,11 +1,10 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
+import Navigation from '@/components/Navigation'
 
 export const metadata = {
-  metadataBase: new URL('https://postgres-drizzle.vercel.app'),
-  title: 'Postgres Demo with Drizzle',
-  description:
-    'A simple Next.js app with a Postgres database and Drizzle as the ORM',
+  title: 'Paper Trader',
+  description: 'A simulated trading platform for paper trading',
 }
 
 const inter = Inter({
@@ -20,8 +19,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.variable}>{children}</body>
+    <html lang="en" className="h-full bg-gray-50">
+      <body className={`${inter.variable} h-full`}>
+        <div className="flex h-full">
+          <Navigation />
+          <main className="flex-1 p-6">{children}</main>
+        </div>
+      </body>
     </html>
   )
 }
