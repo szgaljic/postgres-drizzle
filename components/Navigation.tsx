@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navigation = [
-  { name: 'Home', href: '/', icon: HomeIcon },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Accounts', href: '/accounts', icon: UserGroupIcon },
   { name: 'Trade', href: '/trade', icon: CurrencyDollarIcon },
   { name: 'Research', href: '/research', icon: ChartBarIcon },
@@ -50,5 +50,5 @@ export default function Navigation() {
         </div>
       </div>
     </div>
-  )
+  );
 }
